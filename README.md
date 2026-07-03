@@ -2,15 +2,13 @@
 
 ![Lab](https://img.shields.io/badge/Lab-01-blue) ![Difficulty](https://img.shields.io/badge/Difficulty-Beginner--Intermediate-yellow) ![Time](https://img.shields.io/badge/Time-3--5%20Hours-orange) ![Tool](https://img.shields.io/badge/Tool-Windows%20Server%202025-blue) ![Cert](https://img.shields.io/badge/Cert-Security%2B%20%7C%20Network%2B%20%7C%20AZ--104-green)
 
-📺 **Watch Me Build the Lab — Coming Soon**
+**Watch Me Build this Lab**
 
 ---
 
-## 🎯 Objective
+## What This Lab Covers
 
-Every organisation that runs Windows infrastructure relies on Active Directory to answer one fundamental question: who is allowed to do what? Active Directory is the identity backbone — it controls which users can log into which computers, which groups can access which file shares, and which policies apply to which parts of the organisation.
-
-In this lab, I step into the role of a Systems Administrator building an enterprise identity system from scratch on Windows Server 2025, deployed in Microsoft Azure.
+Active Directory is the identity backbone of every Windows enterprise — it controls who can log in, what they can access, and what rules apply to their machine. In this lab I deployed Windows Server 2025 in Azure and built a functional Active Directory domain.
 
 By the end of this lab, I had:
 
@@ -58,7 +56,7 @@ By the end of this lab, I had:
 
 ---
 
-## ✅ Prerequisites
+## Prerequisites
 
 | Requirement | Details |
 |---|---|
@@ -69,7 +67,7 @@ By the end of this lab, I had:
 
 ---
 
-## 📋 Lab Variables
+## Lab Variables
 
 | Variable | Value |
 |---|---|
@@ -85,7 +83,7 @@ By the end of this lab, I had:
 
 ---
 
-## 🚀 Step-by-Step Instructions
+## Step-by-Step Instructions
 
 ### Phase 1 — Deploy the Azure VM
 
