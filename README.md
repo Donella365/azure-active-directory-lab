@@ -1,25 +1,28 @@
-# Lab 01 — Active Directory & Identity Management
-**Windows Server 2025 · Azure Free Tier · lab.local domain**
+# 01 Active Directory & Identity Management Lab
 
-> Building and managing an enterprise identity system from scratch — users, groups, OUs, GPOs, and the help desk tasks that come with them every day.
+![Lab](https://img.shields.io/badge/Lab-01-blue) ![Difficulty](https://img.shields.io/badge/Difficulty-Beginner--Intermediate-yellow) ![Time](https://img.shields.io/badge/Time-3--5%20Hours-orange) ![Tool](https://img.shields.io/badge/Tool-Windows%20Server%202025-blue) ![Cert](https://img.shields.io/badge/Cert-Security%2B%20%7C%20Network%2B%20%7C%20AZ--104-green)
 
----
-
-## What this lab covers
-
-Active Directory is the identity backbone of every Windows enterprise environment. This lab walks through standing one up from a bare server, structuring it to reflect a real organisation, and performing the day-to-day operations that support and security teams actually deal with.
-
-| Area | Skills demonstrated |
-|---|---|
-| Infrastructure | Deploying Windows Server 2025, promoting a Domain Controller, configuring DNS |
-| Identity design | Organisational Units, security groups, role-based access control |
-| User management | Account creation, group membership, password policies |
-| Policy enforcement | Group Policy Objects, password complexity, screen lock, USB restrictions |
-| Operations | Password resets, account unlocks, offboarding, audit queries |
+📺 **Watch Me Build the Lab — Coming Soon**
 
 ---
 
-## Architecture
+## 🎯 Objective
+
+Every organisation that runs Windows infrastructure relies on Active Directory to answer one fundamental question: who is allowed to do what? Active Directory is the identity backbone — it controls which users can log into which computers, which groups can access which file shares, and which policies apply to which parts of the organisation.
+
+In this lab, I step into the role of a Systems Administrator building an enterprise identity system from scratch on Windows Server 2025, deployed in Microsoft Azure.
+
+By the end of this lab, I had:
+
+- Promoted a Windows Server 2025 VM to a Domain Controller and created a new Active Directory forest (`lab.local`)
+- Designed and built an Organisational Unit structure reflecting a real enterprise department layout
+- Created security groups and user accounts with role-based access control
+- Deployed and configured a Group Policy Object enforcing password complexity, screen lock, and USB restrictions
+- Performed core help desk operations — password resets, account unlocks, offboarding, and audit queries
+
+---
+
+## 🏗️ Architecture Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -30,8 +33,8 @@ Active Directory is the identity backbone of every Windows enterprise environmen
 │         │  Windows Server 2025 · DNS   │                │
 │         └───────────────┬──────────────┘                │
 │                         │                               │
-│        ┌────────────────┼─────────────────┐             │
-│        ▼                ▼                 ▼             │
+│        ┌────────────────┼──────────────────┐            │
+│        ▼                ▼                  ▼            │
 │  ┌──────────┐    ┌──────────┐    ┌──────────────┐       │
 │  │  OU=IT   │    │OU=Finance│    │   OU=HR      │       │
 │  │alice.chen│    │bob.patel │    │ carol.jones  │       │
@@ -39,43 +42,55 @@ Active Directory is the identity backbone of every Windows enterprise environmen
 │  │  (group) │    │  Users   │    │   (group)    │       │
 │  └────┬─────┘    └──────────┘    └──────────────┘       │
 │       │                                                  │
-│  ┌────▼─────────────────┐   ┌───────────────────┐       │
-│  │  IT Security Policy  │   │    OU=Computers    │       │
-│  │  (GPO linked to IT)  │   │  Domain-joined VMs │       │
-│  │  · 12-char passwords │   └───────────────────┘       │
-│  │  · 15-min screen lock│                               │
-│  │  · USB block         │                               │
-│  └──────────────────────┘                               │
+│  ┌────▼──────────────────┐   ┌───────────────────┐      │
+│  │  IT Security Policy   │   │    OU=Computers    │      │
+│  │  (GPO linked to IT)   │   │  Domain-joined VMs │      │
+│  │  · 12-char passwords  │   └───────────────────┘      │
+│  │  · 15-min screen lock │                              │
+│  │  · USB block          │                              │
+│  └───────────────────────┘                              │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Domain:** `lab.local`  
-**Forest root DC:** Windows Server 2025 Datacenter  
-**Deployment target:** Azure (Standard_B2s) or VirtualBox (local)
+**Domain:** `lab.local`
+**Forest root DC:** Windows Server 2025 Datacenter
+**Deployment:** Azure (Standard_B2s)
 
 ---
 
-## Prerequisites
+## ✅ Prerequisites
 
 | Requirement | Details |
 |---|---|
-| Azure free account | $200 credit, 30 days — [azure.microsoft.com/free](https://azure.microsoft.com/free) |
-| OR local machine | 8GB+ RAM, 60GB disk, virtualisation enabled in BIOS |
+| Azure free account | $200 credit — [azure.microsoft.com/free](https://azure.microsoft.com/free) |
 | RDP client | Native Remote Desktop app (not browser-based) |
 | Time | 3–5 hours across multiple sessions |
 | Cost | $0 — fully covered by free tier and evaluation licences |
 
 ---
 
-## Environment setup
+## 📋 Lab Variables
 
-### Option A — Azure (recommended)
+| Variable | Value |
+|---|---|
+| Domain Name | `lab.local` |
+| VM Size | Standard_B2s (2 vCPU, 4GB RAM) |
+| OS | Windows Server 2025 Datacenter Gen2 |
+| Region | East US |
+| OUs Created | IT · Finance · HR · Sales · Computers |
+| Security Groups | IT_Admins · Finance_Users · HR_Users · Sales_Users |
+| Test Users | alice.chen · bob.patel · carol.jones · david.smith |
+| GPO Name | IT Security Policy |
+| Portfolio Repo | azure-active-directory-lab |
 
-No local hardware requirements. The VM runs in Azure and you connect via RDP.
+---
 
-1. Create a free account at [azure.microsoft.com/free](https://azure.microsoft.com/free)
-2. Sign into [portal.azure.com](https://portal.azure.com)
-3. Create a Virtual Machine with these settings:
+## 🚀 Step-by-Step Instructions
+
+### Phase 1 — Deploy the Azure VM
+
+1. Go to [portal.azure.com](https://portal.azure.com) and create a new Virtual Machine
+2. Use these settings:
 
 | Setting | Value |
 |---|---|
@@ -86,47 +101,36 @@ No local hardware requirements. The VM runs in Azure and you connect via RDP.
 | Inbound ports | RDP (3389) |
 | OS disk | Standard SSD |
 
-> **Cost tip:** Stop the VM at the end of every session. A B2s runs ~$0.05/hr — stopping (not deleting) pauses compute billing and stretches your free credits.
+3. Download the `.rdp` file from the Azure portal and open it with the native Remote Desktop app
+4. Before connecting: RDP client → Show Options → Local Resources → check **Clipboard**
 
-**Fix clipboard before connecting:**  
-Open the Remote Desktop app → enter the VM's public IP → Show Options → Local Resources tab → check Clipboard. Download the `.rdp` file from the Azure portal rather than using the browser console for best results.
+> **Cost tip:** Stop the VM at the end of every session. A B2s runs ~$0.05/hr — stopping (not deleting) pauses compute billing.
 
-### Option B — VirtualBox (local)
-
-1. Download [VirtualBox](https://virtualbox.org) (free)
-2. Download the [Windows Server 2025 Evaluation ISO](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2025)
-3. Create a VM: 4GB RAM minimum, 60GB disk, Windows Server 2022 type
-4. Mount the ISO, boot, and select **Windows Server 2025 Datacenter with Desktop Experience**
+**Expected result:**
+✅ Connected to the Windows Server 2025 desktop via RDP. Server Manager opens automatically on login.
 
 ---
 
-## Lab walkthrough
+### Phase 2 — Install Active Directory Domain Services
 
-### Step 1 — Install Active Directory Domain Services
+**Via PowerShell (run as Administrator):**
 
-RDP into the VM. Server Manager opens automatically on login.
-
-**Via GUI:**  
-Server Manager → Manage → Add Roles and Features → Server Roles → check **Active Directory Domain Services** → Add Features → Install
-
-**Via PowerShell:**
 ```powershell
 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 Install-WindowsFeature -Name GPMC
 ```
 
-> Install GPMC in the same session — it's required for Step 4 and won't appear in the Tools menu until it's installed.
+> Install GPMC in the same session — it's required for Phase 4 and won't appear in the Tools menu until installed.
+
+**Expected result:**
+✅ AD DS and GPMC roles installed. No restart required yet.
 
 ---
 
-### Step 2 — Promote the server to a Domain Controller
-
-Installing the AD DS role doesn't create a domain. Promotion does.
-
-**Via GUI:**  
-Server Manager → yellow warning flag → Promote this server to a domain controller → Add a new forest → Root domain name: `lab.local` → set DSRM password → Install (server restarts automatically)
+### Phase 3 — Promote the Server to a Domain Controller
 
 **Via PowerShell:**
+
 ```powershell
 Import-Module ADDSDeployment
 Install-ADDSForest `
@@ -137,15 +141,21 @@ Install-ADDSForest `
   -Force:$true
 ```
 
-After the restart, this server is the authoritative DNS and identity source for everything that joins `lab.local`.
+**Via GUI:**
+Server Manager → yellow warning flag → Promote this server to a domain controller → Add a new forest → Root domain name: `lab.local` → set DSRM password → Install
+
+> The server restarts automatically after promotion. Log back in as `LAB\Administrator`.
+
+**Expected result:**
+✅ Server has restarted and is now the Domain Controller for `lab.local`. DNS is running on the same machine.
 
 ---
 
-### Step 3 — Build the organisational structure
+### Phase 4 — Build the Organisational Structure
 
-Open **Active Directory Users and Computers (ADUC)** from the Tools menu.
+Open **Active Directory Users and Computers (ADUC)** from the Tools menu in Server Manager.
 
-#### Create Organisational Units
+**Create Organisational Units:**
 
 ```powershell
 New-ADOrganizationalUnit -Name "IT"        -Path "DC=lab,DC=local"
@@ -155,7 +165,7 @@ New-ADOrganizationalUnit -Name "Sales"     -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "Computers" -Path "DC=lab,DC=local"
 ```
 
-#### Create Security Groups
+**Create Security Groups:**
 
 ```powershell
 New-ADGroup -Name "IT_Admins"     -GroupScope Global -GroupCategory Security -Path "OU=IT,DC=lab,DC=local"
@@ -164,15 +174,13 @@ New-ADGroup -Name "HR_Users"      -GroupScope Global -GroupCategory Security -Pa
 New-ADGroup -Name "Sales_Users"   -GroupScope Global -GroupCategory Security -Path "OU=Sales,DC=lab,DC=local"
 ```
 
-#### Create Users and assign group membership
+**Create User Accounts and assign group membership:**
 
-> **Important:** Run this entire block together — not line by line. The `$password` variable must be defined before the `New-ADUser` commands execute.
+> ⚠️ Run this entire block together — not line by line. The `$password` variable must be defined before the `New-ADUser` commands run.
 
 ```powershell
-# Define password first
 $password = ConvertTo-SecureString "Welcome@2026!" -AsPlainText -Force
 
-# Create users
 New-ADUser -Name "alice.chen" -GivenName "Alice" -Surname "Chen" `
   -SamAccountName "alice.chen" -UserPrincipalName "alice.chen@lab.local" `
   -Path "OU=IT,DC=lab,DC=local" -AccountPassword $password -Enabled $true
@@ -189,23 +197,25 @@ New-ADUser -Name "david.smith" -GivenName "David" -Surname "Smith" `
   -SamAccountName "david.smith" -UserPrincipalName "david.smith@lab.local" `
   -Path "OU=Sales,DC=lab,DC=local" -AccountPassword $password -Enabled $true
 
-# Assign group memberships
 Add-ADGroupMember -Identity "IT_Admins"     -Members "alice.chen"
 Add-ADGroupMember -Identity "Finance_Users" -Members "bob.patel"
 Add-ADGroupMember -Identity "HR_Users"      -Members "carol.jones"
 Add-ADGroupMember -Identity "Sales_Users"   -Members "david.smith"
 ```
 
+**Expected result:**
+✅ Five OUs visible in ADUC. Four users created and placed in their respective OUs. Each user is a member of their department security group.
+
 ---
 
-### Step 4 — Configure Group Policy
+### Phase 5 — Configure Group Policy
 
 Open **Group Policy Management** from the Tools menu in Server Manager.
 
 1. Expand Forest: lab.local → Domains → lab.local
 2. Right-click the **IT** OU → Create a GPO in this domain and link it here
 3. Name it: `IT Security Policy`
-4. Right-click → Edit, then configure the following:
+4. Right-click → Edit and configure the following settings:
 
 | Policy path | Setting | Value |
 |---|---|---|
@@ -214,16 +224,15 @@ Open **Group Policy Management** from the Tools menu in Server Manager.
 | Computer Config → Windows Settings → Security → Local Policies → Security Options | Interactive logon: Machine inactivity limit | 900 seconds |
 | Computer Config → Administrative Templates → System → Removable Storage Access | All removable storage classes: Deny all access | Enabled |
 
-**Test the GPO:**  
-Join a second VM to `lab.local`, move its computer account into the IT OU, run `gpupdate /force`, log in as `alice.chen`, and verify the screen lock engages after 15 minutes of inactivity.
+**Expected result:**
+✅ IT Security Policy GPO is linked to the IT OU. Settings are enforced automatically for all users and computers inside that OU.
 
 ---
 
-### Step 5 — Help desk operations
-
-These are the tasks every IT support role expects on day one.
+### Phase 6 — Help Desk Operations
 
 **Reset a password:**
+
 ```powershell
 Set-ADAccountPassword -Identity "bob.patel" -Reset `
   -NewPassword (ConvertTo-SecureString "NewPass@2026!" -AsPlainText -Force)
@@ -231,20 +240,20 @@ Set-ADUser -Identity "bob.patel" -ChangePasswordAtLogon $true
 ```
 
 **Unlock a locked account:**
+
 ```powershell
 Unlock-ADAccount -Identity "carol.jones"
 ```
 
 **Disable an account (offboarding):**
-```powershell
-# Disable — preserves account history and group memberships for audit
-Disable-ADAccount -Identity "david.smith"
 
-# Find all disabled accounts
+```powershell
+Disable-ADAccount -Identity "david.smith"
 Search-ADAccount -AccountDisabled | Select-Object Name, SamAccountName
 ```
 
-**Audit: accounts inactive for 90+ days:**
+**Audit — accounts inactive for 90+ days:**
+
 ```powershell
 $cutoff = (Get-Date).AddDays(-90)
 Get-ADUser -Filter {LastLogonDate -lt $cutoff -and Enabled -eq $true} `
@@ -252,15 +261,31 @@ Get-ADUser -Filter {LastLogonDate -lt $cutoff -and Enabled -eq $true} `
 ```
 
 **Check group membership:**
+
 ```powershell
 Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 ```
 
+**Expected result:**
+✅ Password reset, account unlock, disable, and audit queries all execute without errors and return expected output.
+
 ---
 
-## Verification
+## 🔧 Troubleshooting
 
-Run these checks to confirm everything is wired up correctly.
+| Problem | Fix |
+|---|---|
+| PowerShell prompts for `Name:` when creating users | The `$password` variable wasn't defined first. Copy and run the entire block, not individual lines. |
+| Can't copy/paste into the VM | RDP client → Show Options → Local Resources → check Clipboard. Download the `.rdp` file from Azure portal and open with the native Remote Desktop app. |
+| Promotion fails with DNS conflict | Set the NIC's preferred DNS to `127.0.0.1` before promoting. |
+| Can't RDP after domain join | Log in as `LAB\Administrator` not just `Administrator`. |
+| GPO not applying | Run `gpupdate /force` on the target machine, then `gpresult /r` to see applied policies. |
+| User can't log in after creation | Confirm the account is Enabled and `ChangePasswordAtLogon` is not blocking the login. |
+| AD Users and Computers not showing | Run `dsa.msc` from the Run dialog. |
+
+---
+
+## ✔️ Verification
 
 | Check | Command | Expected result |
 |---|---|---|
@@ -272,49 +297,49 @@ Run these checks to confirm everything is wired up correctly.
 
 ---
 
-## Troubleshooting
+## 🧹 Clean Up
 
-| Problem | Fix |
+- Stop the Azure VM when not in use to pause compute billing
+- Do not delete the VM if continuing to Lab 03 — the Windows Server VM is reused as a log forwarder for the Splunk SIEM lab
+
+---
+
+## 💡 Key Concepts
+
+| Concept | What It Does |
 |---|---|
-| PowerShell prompts for `Name:` when creating users | The `$password` variable wasn't defined first. Copy and run the entire block from Step 3, not individual lines. |
-| Can't copy/paste into the VM | RDP client → Show Options → Local Resources → check Clipboard. Or download the `.rdp` file from Azure portal and open with the native Remote Desktop app. |
-| Promotion fails with DNS conflict | Set the NIC's preferred DNS to `127.0.0.1` before promoting. |
-| Can't RDP after domain join | Log in as `LAB\Administrator` (not just `Administrator`). |
-| GPO not applying | Run `gpupdate /force` on the target machine, then `gpresult /r` to see applied policies. |
-| User can't log in after creation | Confirm the account is Enabled and `ChangePasswordAtLogon` is not blocking the login. |
-| AD Users and Computers not showing | Run `dsa.msc` from the Run dialog, or install: `Add-WindowsFeature RSAT-ADDS` |
+| Domain Controller | The server that runs Active Directory and answers every authentication request on the network |
+| Organisational Unit (OU) | A folder inside AD used to organise users and computers — GPOs linked to an OU apply automatically to everything inside it |
+| Security Group | A container for user accounts — permissions are granted to groups, not individuals, enabling role-based access control at scale |
+| Group Policy Object (GPO) | A collection of settings enforced automatically across every user and computer in a linked OU |
+| DSRM Password | Directory Services Restore Mode password — only needed for disaster recovery, store it securely |
+| RBAC | Role-Based Access Control — access follows the role (group membership), not the individual account |
 
 ---
 
-## Key concepts
+## 🛠️ Tools & Services Used
 
-**Domain Controller** — The server that runs Active Directory. It answers every authentication request on the network. When a user logs into any domain-joined machine, their credentials are validated against the DC.
-
-**Organisational Unit (OU)** — A folder inside Active Directory used to organise users, computers, and groups by department or function. The real power: GPOs can be linked to an OU, automatically applying settings to everything inside it.
-
-**Security Group** — A container for user accounts. Permissions are granted to groups, not individuals. When someone changes roles, you update their group membership — every downstream access right changes automatically.
-
-**Group Policy Object (GPO)** — A collection of settings applied automatically to every user or computer in a linked OU. Password policies, screen lock timers, USB restrictions — all enforced centrally without touching individual machines.
-
-**DSRM password** — Directory Services Restore Mode password. Only needed for disaster recovery. Write it down and store it securely.
+![Windows Server](https://img.shields.io/badge/Windows%20Server-2025-blue)
+![Azure](https://img.shields.io/badge/Microsoft-Azure-0078D4)
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1-blue)
+![Active Directory](https://img.shields.io/badge/Active%20Directory-ADDS-lightgrey)
 
 ---
 
-## Certification alignment
+## 📋 Certification Alignment
 
-| Certification | Topics this lab covers |
+| Certification | Topics covered |
 |---|---|
 | CompTIA Security+ | Identity and access management, least privilege, account lifecycle, policy enforcement |
 | CompTIA Network+ | DNS configuration, domain architecture, network authentication |
-| AZ-104 Azure Administrator | Entra ID uses the same concepts: users, groups, roles, conditional access — on-prem AD knowledge transfers directly |
+| AZ-104 Azure Administrator | Entra ID mirrors the same concepts — users, groups, roles, conditional access |
 
 ---
 
-## Cloud relevance
+## 👤 Author
 
-Microsoft Entra ID (formerly Azure AD) is the cloud equivalent of on-premises Active Directory. Users, groups, security policies, and RBAC work on the same principles — just hosted in Azure rather than on a local server. Hybrid environments sync on-premises AD to Entra ID, meaning the same identities appear in both places. Understanding how to build and manage an AD environment is foundational for any Azure cloud or security engineering role.
+**Donella365** — Cloud & Security Engineer in progress
 
----
+[![GitHub](https://img.shields.io/badge/GitHub-Donella365-black?logo=github)](https://github.com/Donella365)
 
-*Lab 01 of an ongoing cloud and identity engineering series.*# azure-active-directory-lab
-Deploying and administering Active Directory Domain Services in Microsoft Azure using Windows Server 2025.
+*Lab 01 of an ongoing cloud and identity engineering portfolio series.*
