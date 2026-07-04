@@ -2,7 +2,7 @@
 
 ---
 
-## What this lab Covers
+## What this lab covers
 
 Active Directory is the identity backbone of every Windows enterprise — it controls who can log in, what they can access, and what rules apply to their machine. In this lab I deployed Windows Server 2025 in Azure and built a functional Active Directory domain.
 
