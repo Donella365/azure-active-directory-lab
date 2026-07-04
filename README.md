@@ -81,7 +81,7 @@ In this lab I:
 
 ## Lab walkthrough
 
-### Step 1 — Deploy the Azure VM
+### Step 1: Deploy the Azure VM
 
 1. Go to [portal.azure.com](https://portal.azure.com) and create a new Virtual Machine
 2. Use these settings:
@@ -105,7 +105,7 @@ Connected to the Windows Server 2025 desktop via RDP. Server Manager opens autom
 
 ---
 
-### Step 2 — Install Active Directory Domain Services
+### Step 2: Install Active Directory Domain Services
 
 **Via PowerShell (run as Administrator):**
 
@@ -121,7 +121,7 @@ AD DS and GPMC roles installed. No restart required yet.
 
 ---
 
-### Step 3 — Promote the Server to a Domain Controller
+### Step 3: Promote the Server to a Domain Controller
 
 **Via PowerShell:**
 
@@ -145,7 +145,7 @@ Server has restarted and is now the Domain Controller for `lab.local`. DNS is ru
 
 ---
 
-### Step 4 — Build the Organisational Structure
+### Step 4: Build the Organisational Structure
 
 Open **Active Directory Users and Computers (ADUC)** from the Tools menu in Server Manager.
 
@@ -202,7 +202,7 @@ Five OUs visible in ADUC. Four users created and placed in their respective OUs.
 
 ---
 
-### Step 5 — Configure Group Policy
+### Step 5: Configure Group Policy
 
 Open **Group Policy Management** from the Tools menu in Server Manager.
 
@@ -223,7 +223,7 @@ IT Security Policy GPO is linked to the IT OU. Settings are enforced automatical
 
 ---
 
-### Step 6 — Help Desk Operations
+### Step 6: Help Desk Operations
 
 **Reset a password:**
 
