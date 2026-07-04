@@ -2,15 +2,13 @@
 
 ![Lab](https://img.shields.io/badge/Lab-01-blue) ![Difficulty](https://img.shields.io/badge/Difficulty-Beginner--Intermediate-yellow) ![Time](https://img.shields.io/badge/Time-3--5%20Hours-orange) ![Tool](https://img.shields.io/badge/Tool-Windows%20Server%202025-blue) ![Cert](https://img.shields.io/badge/Cert-Security%2B%20%7C%20Network%2B%20%7C%20AZ--104-green)
 
-**Watch Me Build this Lab**
-
 ---
 
 ## What This Lab Covers
 
 Active Directory is the identity backbone of every Windows enterprise — it controls who can log in, what they can access, and what rules apply to their machine. In this lab I deployed Windows Server 2025 in Azure and built a functional Active Directory domain.
 
-By the end of this lab, I had:
+In this lab I:
 
 - Promoted a Windows Server 2025 VM to a Domain Controller and created a new Active Directory forest (`lab.local`)
 - Designed and built an Organisational Unit structure reflecting a real enterprise department layout
@@ -20,7 +18,7 @@ By the end of this lab, I had:
 
 ---
 
-## 🏗️ Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -67,7 +65,7 @@ By the end of this lab, I had:
 
 ---
 
-## Lab Variables
+## Lab Details
 
 | Variable | Value |
 |---|---|
@@ -105,7 +103,7 @@ By the end of this lab, I had:
 > **Cost tip:** Stop the VM at the end of every session. A B2s runs ~$0.05/hr — stopping (not deleting) pauses compute billing.
 
 **Expected result:**
-✅ Connected to the Windows Server 2025 desktop via RDP. Server Manager opens automatically on login.
+Connected to the Windows Server 2025 desktop via RDP. Server Manager opens automatically on login.
 
 ---
 
@@ -121,7 +119,7 @@ Install-WindowsFeature -Name GPMC
 > Install GPMC in the same session — it's required for Phase 4 and won't appear in the Tools menu until installed.
 
 **Expected result:**
-✅ AD DS and GPMC roles installed. No restart required yet.
+AD DS and GPMC roles installed. No restart required yet.
 
 ---
 
@@ -145,7 +143,7 @@ Server Manager → yellow warning flag → Promote this server to a domain contr
 > The server restarts automatically after promotion. Log back in as `LAB\Administrator`.
 
 **Expected result:**
-✅ Server has restarted and is now the Domain Controller for `lab.local`. DNS is running on the same machine.
+Server has restarted and is now the Domain Controller for `lab.local`. DNS is running on the same machine.
 
 ---
 
@@ -174,7 +172,7 @@ New-ADGroup -Name "Sales_Users"   -GroupScope Global -GroupCategory Security -Pa
 
 **Create User Accounts and assign group membership:**
 
-> ⚠️ Run this entire block together — not line by line. The `$password` variable must be defined before the `New-ADUser` commands run.
+> Run this entire block together — not line by line. The `$password` variable must be defined before the `New-ADUser` commands run.
 
 ```powershell
 $password = ConvertTo-SecureString "Welcome@2026!" -AsPlainText -Force
@@ -202,7 +200,7 @@ Add-ADGroupMember -Identity "Sales_Users"   -Members "david.smith"
 ```
 
 **Expected result:**
-✅ Five OUs visible in ADUC. Four users created and placed in their respective OUs. Each user is a member of their department security group.
+Five OUs visible in ADUC. Four users created and placed in their respective OUs. Each user is a member of their department security group.
 
 ---
 
@@ -223,7 +221,7 @@ Open **Group Policy Management** from the Tools menu in Server Manager.
 | Computer Config → Administrative Templates → System → Removable Storage Access | All removable storage classes: Deny all access | Enabled |
 
 **Expected result:**
-✅ IT Security Policy GPO is linked to the IT OU. Settings are enforced automatically for all users and computers inside that OU.
+IT Security Policy GPO is linked to the IT OU. Settings are enforced automatically for all users and computers inside that OU.
 
 ---
 
@@ -265,11 +263,11 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 ```
 
 **Expected result:**
-✅ Password reset, account unlock, disable, and audit queries all execute without errors and return expected output.
+Password reset, account unlock, disable, and audit queries all execute without errors and return expected output.
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 | Problem | Fix |
 |---|---|
@@ -283,7 +281,7 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 
 ---
 
-## ✔️ Verification
+## Verification
 
 | Check | Command | Expected result |
 |---|---|---|
@@ -295,14 +293,14 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 
 ---
 
-## 🧹 Clean Up
+## Clean Up
 
 - Stop the Azure VM when not in use to pause compute billing
 - Do not delete the VM if continuing to Lab 03 — the Windows Server VM is reused as a log forwarder for the Splunk SIEM lab
 
 ---
 
-## 💡 Key Concepts
+## Key Concepts
 
 | Concept | What It Does |
 |---|---|
@@ -315,7 +313,7 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 
 ---
 
-## 🛠️ Tools & Services Used
+## Tools & Services Used
 
 ![Windows Server](https://img.shields.io/badge/Windows%20Server-2025-blue)
 ![Azure](https://img.shields.io/badge/Microsoft-Azure-0078D4)
@@ -324,7 +322,7 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 
 ---
 
-## 📋 Certification Alignment
+## Certification Alignment
 
 | Certification | Topics covered |
 |---|---|
@@ -334,10 +332,4 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 
 ---
 
-## 👤 Author
 
-**Donella365** — Cloud & Security Engineer in progress
-
-[![GitHub](https://img.shields.io/badge/GitHub-Donella365-black?logo=github)](https://github.com/Donella365)
-
-*Lab 01 of an ongoing cloud and identity engineering portfolio series.*
