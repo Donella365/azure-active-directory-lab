@@ -2,7 +2,7 @@
 
 ---
 
-## What This Lab Covers
+## What this lab Covers
 
 Active Directory is the identity backbone of every Windows enterprise — it controls who can log in, what they can access, and what rules apply to their machine. In this lab I deployed Windows Server 2025 in Azure and built a functional Active Directory domain.
 
@@ -16,7 +16,7 @@ In this lab I:
 
 ---
 
-## Architecture Diagram
+## Architecture 
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -79,9 +79,9 @@ In this lab I:
 
 ---
 
-## Step-by-Step Instructions
+## Lab walkthrough
 
-### Phase 1 — Deploy the Azure VM
+### Step 1 — Deploy the Azure VM
 
 1. Go to [portal.azure.com](https://portal.azure.com) and create a new Virtual Machine
 2. Use these settings:
@@ -105,7 +105,7 @@ Connected to the Windows Server 2025 desktop via RDP. Server Manager opens autom
 
 ---
 
-### Phase 2 — Install Active Directory Domain Services
+### Step 2 — Install Active Directory Domain Services
 
 **Via PowerShell (run as Administrator):**
 
@@ -121,7 +121,7 @@ AD DS and GPMC roles installed. No restart required yet.
 
 ---
 
-### Phase 3 — Promote the Server to a Domain Controller
+### Step 3 — Promote the Server to a Domain Controller
 
 **Via PowerShell:**
 
@@ -145,7 +145,7 @@ Server has restarted and is now the Domain Controller for `lab.local`. DNS is ru
 
 ---
 
-### Phase 4 — Build the Organisational Structure
+### Step 4 — Build the Organisational Structure
 
 Open **Active Directory Users and Computers (ADUC)** from the Tools menu in Server Manager.
 
@@ -202,7 +202,7 @@ Five OUs visible in ADUC. Four users created and placed in their respective OUs.
 
 ---
 
-### Phase 5 — Configure Group Policy
+### Step 5 — Configure Group Policy
 
 Open **Group Policy Management** from the Tools menu in Server Manager.
 
@@ -223,7 +223,7 @@ IT Security Policy GPO is linked to the IT OU. Settings are enforced automatical
 
 ---
 
-### Phase 6 — Help Desk Operations
+### Step 6 — Help Desk Operations
 
 **Reset a password:**
 
