@@ -1,7 +1,5 @@
 # 01 Active Directory & Identity Management Lab
 
-![Lab](https://img.shields.io/badge/Lab-01-blue) 
-
 ---
 
 ## What This Lab Covers
@@ -315,20 +313,7 @@ Password reset, account unlock, disable, and audit queries all execute without e
 
 ## Tools & Services Used
 
-![Windows Server](https://img.shields.io/badge/Windows%20Server-2025-blue)
-![Azure](https://img.shields.io/badge/Microsoft-Azure-0078D4)
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1-blue)
-![Active Directory](https://img.shields.io/badge/Active%20Directory-ADDS-lightgrey)
-
----
-
-## Certification Alignment
-
-| Certification | Topics covered |
-|---|---|
-| CompTIA Security+ | Identity and access management, least privilege, account lifecycle, policy enforcement |
-| CompTIA Network+ | DNS configuration, domain architecture, network authentication |
-| AZ-104 Azure Administrator | Entra ID mirrors the same concepts — users, groups, roles, conditional access |
+Windows Server, Azure, Powershell, Active Directory
 
 ---
 
