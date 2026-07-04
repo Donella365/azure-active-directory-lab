@@ -1,6 +1,6 @@
 # 01 Active Directory & Identity Management Lab
 
-![Lab](https://img.shields.io/badge/Lab-01-blue) ![Difficulty](https://img.shields.io/badge/Difficulty-Beginner--Intermediate-yellow) ![Time](https://img.shields.io/badge/Time-3--5%20Hours-orange) ![Tool](https://img.shields.io/badge/Tool-Windows%20Server%202025-blue) ![Cert](https://img.shields.io/badge/Cert-Security%2B%20%7C%20Network%2B%20%7C%20AZ--104-green)
+![Lab](https://img.shields.io/badge/Lab-01-blue) 
 
 ---
 
