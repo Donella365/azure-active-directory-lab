@@ -2,7 +2,7 @@
 
 ---
 
-## [▶️ Lab Walkthrough Video](https://www.loom.com/)
+## [▶️ Lab Walkthrough Video](https://www.loom.com/share/324f9012625e45d0af3748a1a2f56ef0)
 
 ## What This Lab Covers
 
