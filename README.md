@@ -1,59 +1,50 @@
-# 01 Active Directory & Identity Management Lab
+# 01 Active Directory Domain Services Lab
 
 ---
+
 ## [▶️ Lab Walkthrough Video](https://www.loom.com/share/324f9012625e45d0af3748a1a2f56ef0)
 
-## What this lab covers
+## What This Lab Covers
 
-Active Directory is the identity backbone of every Windows enterprise — it controls who can log in, what they can access, and what rules apply to their machine. In this lab I deployed Windows Server 2025 in Azure and built a functional Active Directory domain.
+Active Directory Domain Services (AD DS) is Microsoft's directory service for Windows Server that provides centralized management of users, computers, groups, authentication, and authorization within a domain.
 
-In this lab I:
-
-- Promoted a Windows Server 2025 VM to a Domain Controller and created a new Active Directory forest (`lab.local`)
-- Designed and built an Organisational Unit structure reflecting a real enterprise department layout
-- Created security groups and user accounts with role-based access control
-- Deployed and configured a Group Policy Object enforcing password complexity, screen lock, and USB restrictions
-- Performed core help desk operations — password resets, account unlocks, offboarding, and audit queries
+In this lab, I deployed a Windows Server 2025 virtual machine in Microsoft Azure, promoted it to a domain controller, configured Active Directory Domain Services, and performed common administrative tasks including user and group management, Organizational Unit (OU) creation, Group Policy configuration, and domain administration.
 
 ---
 
-## Architecture 
+## Architecture
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────┐
-│                   lab.local (Forest)                    │
-│                                                         │
-│         ┌──────────────────────────────┐                │
-│         │      Domain Controller       │                │
-│         │  Windows Server 2025 · DNS   │                │
-│         └───────────────┬──────────────┘                │
-│                         │                               │
-│        ┌────────────────┼──────────────────┐            │
-│        ▼                ▼                  ▼            │
-│  ┌──────────┐    ┌──────────┐    ┌──────────────┐       │
-│  │  OU=IT   │    │OU=Finance│    │   OU=HR      │       │
-│  │alice.chen│    │bob.patel │    │ carol.jones  │       │
-│  │IT_Admins │    │Finance_  │    │  HR_Users    │       │
-│  │  (group) │    │  Users   │    │   (group)    │       │
-│  └────┬─────┘    └──────────┘    └──────────────┘       │
-│       │                                                  │
-│  ┌────▼──────────────────┐   ┌───────────────────┐      │
-│  │  IT Security Policy   │   │    OU=Computers    │      │
-│  │  (GPO linked to IT)   │   │  Domain-joined VMs │      │
-│  │  · 12-char passwords  │   └───────────────────┘      │
-│  │  · 15-min screen lock │                              │
-│  │  · USB block          │                              │
-│  └───────────────────────┘                              │
+│                   lab.local (Forest)                     │
+│                                                           │
+│         ┌──────────────────────────────┐                 │
+│         │      Domain Controller        │                │
+│         │  Windows Server 2025 · DNS    │                │
+│         └───────────────┬──────────────┘                 │
+│                          │                                │
+│        ┌─────────────────┼───────────────────┐           │
+│        ▼                 ▼                    ▼           │
+│  ┌──────────┐    ┌──────────┐      ┌──────────────┐      │
+│  │  OU=IT   │    │OU=Finance│      │    OU=HR      │      │
+│  │alice.chen│    │bob.patel │      │ carol.jones   │      │
+│  │IT_Admins │    │Finance_  │      │  HR_Users     │      │
+│  │ (group)  │    │  Users   │      │   (group)     │      │
+│  └────┬─────┘    └──────────┘      └──────────────┘      │
+│       │                                                   │
+│  ┌────▼──────────────────┐   ┌───────────────────┐       │
+│  │  IT Security Policy   │   │   OU=Computers     │       │
+│  │  (GPO linked to IT)   │   │ Domain-joined VMs  │       │
+│  │  · 12-char passwords  │   └───────────────────┘       │
+│  │  · 15-min screen lock │                               │
+│  │  · USB block          │                               │
+│  └───────────────────────┘                               │
 └─────────────────────────────────────────────────────────┘
-```
-
-**Domain:** `lab.local`
-**Forest root DC:** Windows Server 2025 Datacenter
-**Deployment:** Azure (Standard_B2s)
+\`\`\`
 
 ---
 
-## Prerequisites
+## Before You Begin
 
 | Requirement | Details |
 |---|---|
@@ -80,7 +71,7 @@ In this lab I:
 
 ---
 
-## Lab walkthrough
+## Lab Walkthrough
 
 ### Step 1: Deploy the Azure VM
 
@@ -101,8 +92,7 @@ In this lab I:
 
 > **Cost tip:** Stop the VM at the end of every session. A B2s runs ~$0.05/hr — stopping (not deleting) pauses compute billing.
 
-**Expected result:**
-Connected to the Windows Server 2025 desktop via RDP. Server Manager opens automatically on login.
+**Expected result:** Connected to the Windows Server 2025 desktop via RDP. Server Manager opens automatically on login.
 
 ---
 
@@ -110,15 +100,14 @@ Connected to the Windows Server 2025 desktop via RDP. Server Manager opens autom
 
 **Via PowerShell (run as Administrator):**
 
-```powershell
+\`\`\`powershell
 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 Install-WindowsFeature -Name GPMC
-```
+\`\`\`
 
-> Install GPMC in the same session — it's required for Phase 4 and won't appear in the Tools menu until installed.
+> Install GPMC in the same session — it's required for Step 5 and won't appear in the Tools menu until installed.
 
-**Expected result:**
-AD DS and GPMC roles installed. No restart required yet.
+**Expected result:** AD DS and GPMC roles installed. No restart required yet.
 
 ---
 
@@ -126,23 +115,22 @@ AD DS and GPMC roles installed. No restart required yet.
 
 **Via PowerShell:**
 
-```powershell
+\`\`\`powershell
 Import-Module ADDSDeployment
-Install-ADDSForest `
-  -DomainName 'lab.local' `
-  -DomainNetBiosName 'LAB' `
-  -InstallDns:$true `
-  -SafeModeAdministratorPassword (ConvertTo-SecureString 'YourDSRMPassword!' -AsPlainText -Force) `
+Install-ADDSForest \`
+  -DomainName 'lab.local' \`
+  -DomainNetBiosName 'LAB' \`
+  -InstallDns:$true \`
+  -SafeModeAdministratorPassword (ConvertTo-SecureString 'YourDSRMPassword!' -AsPlainText -Force) \`
   -Force:$true
-```
+\`\`\`
 
 **Via GUI:**
 Server Manager → yellow warning flag → Promote this server to a domain controller → Add a new forest → Root domain name: `lab.local` → set DSRM password → Install
 
 > The server restarts automatically after promotion. Log back in as `LAB\Administrator`.
 
-**Expected result:**
-Server has restarted and is now the Domain Controller for `lab.local`. DNS is running on the same machine.
+**Expected result:** Server has restarted and is now the Domain Controller for `lab.local`. DNS is running on the same machine.
 
 ---
 
@@ -152,54 +140,53 @@ Open **Active Directory Users and Computers (ADUC)** from the Tools menu in Serv
 
 **Create Organisational Units:**
 
-```powershell
+\`\`\`powershell
 New-ADOrganizationalUnit -Name "IT"        -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "Finance"   -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "HR"        -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "Sales"     -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "Computers" -Path "DC=lab,DC=local"
-```
+\`\`\`
 
 **Create Security Groups:**
 
-```powershell
+\`\`\`powershell
 New-ADGroup -Name "IT_Admins"     -GroupScope Global -GroupCategory Security -Path "OU=IT,DC=lab,DC=local"
 New-ADGroup -Name "Finance_Users" -GroupScope Global -GroupCategory Security -Path "OU=Finance,DC=lab,DC=local"
 New-ADGroup -Name "HR_Users"      -GroupScope Global -GroupCategory Security -Path "OU=HR,DC=lab,DC=local"
 New-ADGroup -Name "Sales_Users"   -GroupScope Global -GroupCategory Security -Path "OU=Sales,DC=lab,DC=local"
-```
+\`\`\`
 
 **Create User Accounts and assign group membership:**
 
 > Run this entire block together — not line by line. The `$password` variable must be defined before the `New-ADUser` commands run.
 
-```powershell
+\`\`\`powershell
 $password = ConvertTo-SecureString "Welcome@2026!" -AsPlainText -Force
 
-New-ADUser -Name "alice.chen" -GivenName "Alice" -Surname "Chen" `
-  -SamAccountName "alice.chen" -UserPrincipalName "alice.chen@lab.local" `
+New-ADUser -Name "alice.chen" -GivenName "Alice" -Surname "Chen" \`
+  -SamAccountName "alice.chen" -UserPrincipalName "alice.chen@lab.local" \`
   -Path "OU=IT,DC=lab,DC=local" -AccountPassword $password -Enabled $true
 
-New-ADUser -Name "bob.patel" -GivenName "Bob" -Surname "Patel" `
-  -SamAccountName "bob.patel" -UserPrincipalName "bob.patel@lab.local" `
+New-ADUser -Name "bob.patel" -GivenName "Bob" -Surname "Patel" \`
+  -SamAccountName "bob.patel" -UserPrincipalName "bob.patel@lab.local" \`
   -Path "OU=Finance,DC=lab,DC=local" -AccountPassword $password -Enabled $true
 
-New-ADUser -Name "carol.jones" -GivenName "Carol" -Surname "Jones" `
-  -SamAccountName "carol.jones" -UserPrincipalName "carol.jones@lab.local" `
+New-ADUser -Name "carol.jones" -GivenName "Carol" -Surname "Jones" \`
+  -SamAccountName "carol.jones" -UserPrincipalName "carol.jones@lab.local" \`
   -Path "OU=HR,DC=lab,DC=local" -AccountPassword $password -Enabled $true
 
-New-ADUser -Name "david.smith" -GivenName "David" -Surname "Smith" `
-  -SamAccountName "david.smith" -UserPrincipalName "david.smith@lab.local" `
+New-ADUser -Name "david.smith" -GivenName "David" -Surname "Smith" \`
+  -SamAccountName "david.smith" -UserPrincipalName "david.smith@lab.local" \`
   -Path "OU=Sales,DC=lab,DC=local" -AccountPassword $password -Enabled $true
 
 Add-ADGroupMember -Identity "IT_Admins"     -Members "alice.chen"
 Add-ADGroupMember -Identity "Finance_Users" -Members "bob.patel"
 Add-ADGroupMember -Identity "HR_Users"      -Members "carol.jones"
 Add-ADGroupMember -Identity "Sales_Users"   -Members "david.smith"
-```
+\`\`\`
 
-**Expected result:**
-Five OUs visible in ADUC. Four users created and placed in their respective OUs. Each user is a member of their department security group.
+**Expected result:** Five OUs visible in ADUC. Four users created and placed in their respective OUs. Each user is a member of their department security group.
 
 ---
 
@@ -212,15 +199,14 @@ Open **Group Policy Management** from the Tools menu in Server Manager.
 3. Name it: `IT Security Policy`
 4. Right-click → Edit and configure the following settings:
 
-| Policy path | Setting | Value |
+| Policy Path | Setting | Value |
 |---|---|---|
 | Computer Config → Windows Settings → Security → Account Policies → Password Policy | Minimum password length | 12 |
 | Computer Config → Windows Settings → Security → Account Policies → Password Policy | Password must meet complexity requirements | Enabled |
 | Computer Config → Windows Settings → Security → Local Policies → Security Options | Interactive logon: Machine inactivity limit | 900 seconds |
 | Computer Config → Administrative Templates → System → Removable Storage Access | All removable storage classes: Deny all access | Enabled |
 
-**Expected result:**
-IT Security Policy GPO is linked to the IT OU. Settings are enforced automatically for all users and computers inside that OU.
+**Expected result:** IT Security Policy GPO is linked to the IT OU. Settings are enforced automatically for all users and computers inside that OU.
 
 ---
 
@@ -228,41 +214,40 @@ IT Security Policy GPO is linked to the IT OU. Settings are enforced automatical
 
 **Reset a password:**
 
-```powershell
-Set-ADAccountPassword -Identity "bob.patel" -Reset `
+\`\`\`powershell
+Set-ADAccountPassword -Identity "bob.patel" -Reset \`
   -NewPassword (ConvertTo-SecureString "NewPass@2026!" -AsPlainText -Force)
 Set-ADUser -Identity "bob.patel" -ChangePasswordAtLogon $true
-```
+\`\`\`
 
 **Unlock a locked account:**
 
-```powershell
+\`\`\`powershell
 Unlock-ADAccount -Identity "carol.jones"
-```
+\`\`\`
 
 **Disable an account (offboarding):**
 
-```powershell
+\`\`\`powershell
 Disable-ADAccount -Identity "david.smith"
 Search-ADAccount -AccountDisabled | Select-Object Name, SamAccountName
-```
+\`\`\`
 
 **Audit — accounts inactive for 90+ days:**
 
-```powershell
+\`\`\`powershell
 $cutoff = (Get-Date).AddDays(-90)
-Get-ADUser -Filter {LastLogonDate -lt $cutoff -and Enabled -eq $true} `
+Get-ADUser -Filter {LastLogonDate -lt $cutoff -and Enabled -eq $true} \`
   -Properties LastLogonDate | Select-Object Name, LastLogonDate
-```
+\`\`\`
 
 **Check group membership:**
 
-```powershell
+\`\`\`powershell
 Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
-```
+\`\`\`
 
-**Expected result:**
-Password reset, account unlock, disable, and audit queries all execute without errors and return expected output.
+**Expected result:** Password reset, account unlock, disable, and audit queries all execute without errors and return expected output.
 
 ---
 
@@ -273,16 +258,16 @@ Password reset, account unlock, disable, and audit queries all execute without e
 | PowerShell prompts for `Name:` when creating users | The `$password` variable wasn't defined first. Copy and run the entire block, not individual lines. |
 | Can't copy/paste into the VM | RDP client → Show Options → Local Resources → check Clipboard. Download the `.rdp` file from Azure portal and open with the native Remote Desktop app. |
 | Promotion fails with DNS conflict | Set the NIC's preferred DNS to `127.0.0.1` before promoting. |
-| Can't RDP after domain join | Log in as `LAB\Administrator` not just `Administrator`. |
+| Can't RDP after domain join | Log in as `LAB\Administrator`, not just `Administrator`. |
 | GPO not applying | Run `gpupdate /force` on the target machine, then `gpresult /r` to see applied policies. |
-| User can't log in after creation | Confirm the account is Enabled and `ChangePasswordAtLogon` is not blocking the login. |
+| User can't log in after creation | Confirm the account is enabled and `ChangePasswordAtLogon` isn't blocking the login. |
 | AD Users and Computers not showing | Run `dsa.msc` from the Run dialog. |
 
 ---
 
 ## Verification
 
-| Check | Command | Expected result |
+| Check | Command | Expected Result |
 |---|---|---|
 | DC is running | `Get-ADDomainController` | Returns DC info including forest `lab.local` |
 | OUs exist | `Get-ADOrganizationalUnit -Filter *` | Lists all 5 OUs |
@@ -294,8 +279,7 @@ Password reset, account unlock, disable, and audit queries all execute without e
 
 ## Clean Up
 
-- Stop the Azure VM when not in use to pause compute billing
-- Do not delete the VM if continuing to Lab 03 — the Windows Server VM is reused as a log forwarder for the Splunk SIEM lab
+Do not delete the VM if continuing to Lab 03 — the Windows Server VM is reused as a log forwarder for the Splunk SIEM lab.
 
 ---
 
@@ -314,8 +298,4 @@ Password reset, account unlock, disable, and audit queries all execute without e
 
 ## Tools & Services Used
 
-Windows Server, Azure, Powershell, Active Directory
-
----
-
-
+Windows Server, Azure, PowerShell, Active Directory
