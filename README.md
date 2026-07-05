@@ -14,33 +14,35 @@ In this lab, I deployed a Windows Server 2025 virtual machine in Microsoft Azure
 
 ## Architecture
 
-\`\`\`
-┌─────────────────────────────────────────────────────────┐
-│                   lab.local (Forest)                     │
-│                                                           │
-│         ┌──────────────────────────────┐                 │
-│         │      Domain Controller        │                │
-│         │  Windows Server 2025 · DNS    │                │
-│         └───────────────┬──────────────┘                 │
-│                          │                                │
-│        ┌─────────────────┼───────────────────┐           │
-│        ▼                 ▼                    ▼           │
-│  ┌──────────┐    ┌──────────┐      ┌──────────────┐      │
-│  │  OU=IT   │    │OU=Finance│      │    OU=HR      │      │
-│  │alice.chen│    │bob.patel │      │ carol.jones   │      │
-│  │IT_Admins │    │Finance_  │      │  HR_Users     │      │
-│  │ (group)  │    │  Users   │      │   (group)     │      │
-│  └────┬─────┘    └──────────┘      └──────────────┘      │
-│       │                                                   │
-│  ┌────▼──────────────────┐   ┌───────────────────┐       │
-│  │  IT Security Policy   │   │   OU=Computers     │       │
-│  │  (GPO linked to IT)   │   │ Domain-joined VMs  │       │
-│  │  · 12-char passwords  │   └───────────────────┘       │
-│  │  · 15-min screen lock │                               │
-│  │  · USB block          │                               │
-│  └───────────────────────┘                               │
-└─────────────────────────────────────────────────────────┘
-\`\`\`
+```text
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        lab.local (Forest)                                  │
+│                                                                            │
+│          ┌──────────────────────────────┐                                  │
+│          │      Domain Controller       │                                  │
+│          │  Windows Server 2025 · DNS   │                                  │
+│          └──────────────┬───────────────┘                                  │
+│                         │                                                  │
+│      ───────────────────┼────────────────────                              │
+│             ▼           ▼             ▼                                    │
+│      ┌──────────┐ ┌──────────┐ ┌──────────┐                                │
+│      │  OU=IT   │ │OU=Finance│ │  OU=HR   │                                │
+│      │alice.chen│ │bob.patel │ │carol.jones│                               │
+│      │IT_Admins │ │Finance_  │ │ HR_Users │                                │
+│      │ (group)  │ │  Users   │ │ (group)  │                                │
+│      └──────────┘ └──────────┘ └──────────┘                                │
+│            │                                                               │
+│            ▼                                                               │
+│    ┌──────────────────────┐      ┌──────────────────────┐                  │
+│    │ IT Security Policy   │      │    OU=Computers      │                  │
+│    │ (GPO linked to IT)   │      │ Domain-joined VMs    │                  │
+│    │ • 12-char passwords  │      └──────────────────────┘                  │
+│    │ • 15-min screen lock │                                                │
+│    │ • USB block          │                                                │
+│    └──────────────────────┘                                                │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
