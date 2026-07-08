@@ -8,7 +8,7 @@
 
 Active Directory Domain Services (AD DS) is Microsoft's directory service for Windows Server that provides centralized management of users, computers, groups, authentication, and authorization within a domain.
 
-In this lab, I deployed a Windows Server 2025 virtual machine in Microsoft Azure, promoted it to a domain controller, configured Active Directory Domain Services, and performed common administrative tasks including user and group management, Organizational Unit (OU) creation, Group Policy configuration, and domain administration.
+In this lab, I deployed a Windows Server 2025 virtual machine in Microsoft Azure and promoted it to a domain controller. From there, I configured Active Directory Domain Services, created Organizational Units (OUs), managed users and security groups, configured Group Policy, and performed common help desk tasks.
 
 ---
 
