@@ -1,4 +1,4 @@
-# 01 Active Directory Domain Services Lab
+# 01 Active Directory Domain Services
 
 ---
 
