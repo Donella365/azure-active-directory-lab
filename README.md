@@ -14,61 +14,26 @@ In this lab, I deployed a Windows Server 2025 virtual machine in Microsoft Azure
 
 ## Architecture
 
-```text
-┌────────────────────────────────────────────────────────────────────────────┐
-│                        lab.local (Forest)                                  │
-│                                                                            │
-│          ┌──────────────────────────────┐                                  │
-│          │      Domain Controller       │                                  │
-│          │  Windows Server 2025 · DNS   │                                  │
-│          └──────────────┬───────────────┘                                  │
-│                         │                                                  │
-│      ───────────────────┼────────────────────                              │
-│             ▼           ▼             ▼                                    │
-│      ┌──────────┐ ┌──────────┐ ┌──────────┐                                │
-│      │  OU=IT   │ │OU=Finance│ │  OU=HR   │                                │
-│      │alice.chen│ │bob.patel │ │carol.jones│                               │
-│      │IT_Admins │ │Finance_  │ │ HR_Users │                                │
-│      │ (group)  │ │  Users   │ │ (group)  │                                │
-│      └──────────┘ └──────────┘ └──────────┘                                │
-│            │                                                               │
-│            ▼                                                               │
-│    ┌──────────────────────┐      ┌──────────────────────┐                  │
-│    │ IT Security Policy   │      │    OU=Computers      │                  │
-│    │ (GPO linked to IT)   │      │ Domain-joined VMs    │                  │
-│    │ • 12-char passwords  │      └──────────────────────┘                  │
-│    │ • 15-min screen lock │                                                │
-│    │ • USB block          │                                                │
-│    └──────────────────────┘                                                │
-│                                                                            │
-└────────────────────────────────────────────────────────────────────────────┘
-```
+<img width="1536" height="1024" alt="lab1diagram" src="https://github.com/user-attachments/assets/38e0baad-9c84-4c8d-8d82-8d4c206deb0e" />
 
----
-
-## Before You Begin
-
-| Requirement | Details |
-|---|---|
-| Azure free account | $200 credit — [azure.microsoft.com/free](https://azure.microsoft.com/free) |
-| RDP client | Native Remote Desktop app (not browser-based) |
-| Time | 3–5 hours across multiple sessions |
-| Cost | $0 — fully covered by free tier and evaluation licences |
+`lab.local` is the domain. IT, Finance, HR, and Sales exist as sibling OUs, each with one test user and one security group. The `skoolGPO1` Group Policy Object is linked only to the IT OU.
+ 
+Note: this lab's script also attempted to create a fifth OU named `Computers`. That's covered in Step 4 and the Key Learning section below — it's left out of the diagram since it isn't something I actually created.
 
 ---
 
 ## Lab Details
-
+ 
 | Variable | Value |
-|---|---|
-| Domain Name | `lab.local` |
+| --- | --- |
+| Domain Name | lab.local |
 | VM Size | Standard_B2s (2 vCPU, 4GB RAM) |
 | OS | Windows Server 2025 Datacenter Gen2 |
 | Region | East US |
-| OUs Created | IT · Finance · HR · Sales · Computers |
+| OUs Created | IT · Finance · HR · Sales |
 | Security Groups | IT_Admins · Finance_Users · HR_Users · Sales_Users |
 | Test Users | alice.chen · bob.patel · carol.jones · david.smith |
-| GPO Name | IT Security Policy |
+| GPO Name | skoolGPO1 |
 | Portfolio Repo | azure-active-directory-lab |
 
 ---
@@ -91,8 +56,6 @@ In this lab, I deployed a Windows Server 2025 virtual machine in Microsoft Azure
 
 3. Download the `.rdp` file from the Azure portal and open it with the native Remote Desktop app
 4. Before connecting: RDP client → Show Options → Local Resources → check **Clipboard**
-
-> **Cost tip:** Stop the VM at the end of every session. A B2s runs ~$0.05/hr — stopping (not deleting) pauses compute billing.
 
 **Expected result:** Connected to the Windows Server 2025 desktop via RDP. Server Manager opens automatically on login.
 
@@ -137,58 +100,50 @@ Server Manager → yellow warning flag → Promote this server to a domain contr
 ---
 
 ### Step 4: Build the Organisational Structure
-
-Open **Active Directory Users and Computers (ADUC)** from the Tools menu in Server Manager.
-
-**Create Organisational Units:**
-
-\`\`\`powershell
-New-ADOrganizationalUnit -Name "IT"        -Path "DC=lab,DC=local"
-New-ADOrganizationalUnit -Name "Finance"   -Path "DC=lab,DC=local"
-New-ADOrganizationalUnit -Name "HR"        -Path "DC=lab,DC=local"
-New-ADOrganizationalUnit -Name "Sales"     -Path "DC=lab,DC=local"
+Open Active Directory Users and Computers (ADUC) from the Tools menu in Server Manager.
+Run the OU creation script covering IT, Finance, HR, Sales, and Computers:
+```powershell
+New-ADOrganizationalUnit -Name "IT" -Path "DC=lab,DC=local"
+New-ADOrganizationalUnit -Name "Finance" -Path "DC=lab,DC=local"
+New-ADOrganizationalUnit -Name "HR" -Path "DC=lab,DC=local"
+New-ADOrganizationalUnit -Name "Sales" -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "Computers" -Path "DC=lab,DC=local"
-\`\`\`
-
-**Create Security Groups:**
-
-\`\`\`powershell
-New-ADGroup -Name "IT_Admins"     -GroupScope Global -GroupCategory Security -Path "OU=IT,DC=lab,DC=local"
+```
+Result: IT, Finance, HR, and Sales create successfully. The `Computers` line fails immediately with "an object with that name already exists."
+Active Directory already created the built-in `Computers` container when the server was promoted to a Domain Controller. The command isn't the issue. I'm trying to create something that already exists.
+Create Security Groups:
+```powershell
+New-ADGroup -Name "IT_Admins" -GroupScope Global -GroupCategory Security -Path "OU=IT,DC=lab,DC=local"
 New-ADGroup -Name "Finance_Users" -GroupScope Global -GroupCategory Security -Path "OU=Finance,DC=lab,DC=local"
-New-ADGroup -Name "HR_Users"      -GroupScope Global -GroupCategory Security -Path "OU=HR,DC=lab,DC=local"
-New-ADGroup -Name "Sales_Users"   -GroupScope Global -GroupCategory Security -Path "OU=Sales,DC=lab,DC=local"
-\`\`\`
-
-**Create User Accounts and assign group membership:**
-
-> Run this entire block together — not line by line. The `$password` variable must be defined before the `New-ADUser` commands run.
-
-\`\`\`powershell
+New-ADGroup -Name "HR_Users" -GroupScope Global -GroupCategory Security -Path "OU=HR,DC=lab,DC=local"
+New-ADGroup -Name "Sales_Users" -GroupScope Global -GroupCategory Security -Path "OU=Sales,DC=lab,DC=local"
+```
+Create User Accounts and assign group membership. Run this entire block together, not line by line, since the `$password` variable must be defined before the `New-ADUser` commands run:
+```powershell
 $password = ConvertTo-SecureString "Welcome@2026!" -AsPlainText -Force
-
-New-ADUser -Name "alice.chen" -GivenName "Alice" -Surname "Chen" \`
-  -SamAccountName "alice.chen" -UserPrincipalName "alice.chen@lab.local" \`
+ 
+New-ADUser -Name "alice.chen" -GivenName "Alice" -Surname "Chen" `
+  -SamAccountName "alice.chen" -UserPrincipalName "alice.chen@lab.local" `
   -Path "OU=IT,DC=lab,DC=local" -AccountPassword $password -Enabled $true
-
-New-ADUser -Name "bob.patel" -GivenName "Bob" -Surname "Patel" \`
-  -SamAccountName "bob.patel" -UserPrincipalName "bob.patel@lab.local" \`
+ 
+New-ADUser -Name "bob.patel" -GivenName "Bob" -Surname "Patel" `
+  -SamAccountName "bob.patel" -UserPrincipalName "bob.patel@lab.local" `
   -Path "OU=Finance,DC=lab,DC=local" -AccountPassword $password -Enabled $true
-
-New-ADUser -Name "carol.jones" -GivenName "Carol" -Surname "Jones" \`
-  -SamAccountName "carol.jones" -UserPrincipalName "carol.jones@lab.local" \`
+ 
+New-ADUser -Name "carol.jones" -GivenName "Carol" -Surname "Jones" `
+  -SamAccountName "carol.jones" -UserPrincipalName "carol.jones@lab.local" `
   -Path "OU=HR,DC=lab,DC=local" -AccountPassword $password -Enabled $true
-
-New-ADUser -Name "david.smith" -GivenName "David" -Surname "Smith" \`
-  -SamAccountName "david.smith" -UserPrincipalName "david.smith@lab.local" \`
+ 
+New-ADUser -Name "david.smith" -GivenName "David" -Surname "Smith" `
+  -SamAccountName "david.smith" -UserPrincipalName "david.smith@lab.local" `
   -Path "OU=Sales,DC=lab,DC=local" -AccountPassword $password -Enabled $true
-
-Add-ADGroupMember -Identity "IT_Admins"     -Members "alice.chen"
+ 
+Add-ADGroupMember -Identity "IT_Admins" -Members "alice.chen"
 Add-ADGroupMember -Identity "Finance_Users" -Members "bob.patel"
-Add-ADGroupMember -Identity "HR_Users"      -Members "carol.jones"
-Add-ADGroupMember -Identity "Sales_Users"   -Members "david.smith"
-\`\`\`
-
-**Expected result:** Five OUs visible in ADUC. Four users created and placed in their respective OUs. Each user is a member of their department security group.
+Add-ADGroupMember -Identity "HR_Users" -Members "carol.jones"
+Add-ADGroupMember -Identity "Sales_Users" -Members "david.smith"
+```
+Expected result: Four OUs visible in ADUC (IT, Finance, HR, Sales). Four users created and placed in their respective OUs. Each user is a member of their department security group.
 
 ---
 
@@ -282,6 +237,11 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 ## Clean Up
 
 Do not delete the VM if continuing to Lab 03 — the Windows Server VM is reused as a log forwarder for the Splunk SIEM lab.
+
+---
+
+## Key Learning
+Tried to create an OU named `Computers`. It failed immediately. Active Directory had already created the built-in `Computers` container when the server was promoted to a Domain Controller. My command wasn't the issue — I was trying to create something that already existed. Every fresh AD domain has this container by default; it's expected behavior, not a mistake.
 
 ---
 
