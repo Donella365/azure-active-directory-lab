@@ -234,12 +234,6 @@ Get-ADPrincipalGroupMembership -Identity "alice.chen" | Select-Object Name
 
 ---
 
-## Clean Up
-
-Do not delete the VM if continuing to Lab 03 — the Windows Server VM is reused as a log forwarder for the Splunk SIEM lab.
-
----
-
 ## Key Learning
 Tried to create an OU named `Computers`. It failed immediately. Active Directory had already created the built-in `Computers` container when the server was promoted to a Domain Controller. My command wasn't the issue — I was trying to create something that already existed. Every fresh AD domain has this container by default; it's expected behavior, not a mistake.
 
